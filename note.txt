@@ -1,0 +1,3 @@
+Change urlparse in C:\..\AppData\Roaming\Python\Python37\site-packages flask_oauth.
+ -(from urllib.parse import urlparse)
+ -(NameError: name 'urljoin' is not defined -> urlparse)
