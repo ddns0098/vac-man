@@ -1,7 +1,8 @@
 from flask import redirect, url_for, session, request, jsonify, render_template
-from flaskr import app
+from flaskr import app, db
 from flaskr.models import User, LeaveRequest
 from flask_oauthlib.client import OAuth
+import json
 
 REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
 
@@ -44,8 +45,14 @@ def authorized():
             request.args['error_description']
             )
     session['google_token'] = (resp['access_token'], '')
-    me = google.get('userinfo')
-    return jsonify({"data": me.data})
+    raw_data = json.dumps(google.get('userinfo').data)
+    data = json.loads(raw_data)
+    user = User(email = data['email'])
+    existing = User.query.filter_by(email=user.email).first()
+    if existing is None:
+        db.session.add(user)
+        db.session.commit()
+    return redirect(url_for('index'))
 
 @google.tokengetter
 def get_google_oauth_token():
