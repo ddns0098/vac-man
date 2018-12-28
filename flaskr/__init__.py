@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, redirect, url_for, session, request, jsonify, render_template
 from flask_oauthlib.client import OAuth
+from flask_sqlalchemy import SQLAlchemy
 
 REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
 
@@ -12,9 +13,11 @@ def create_app(test_config=None):
     app.config.from_pyfile('config.py')
     app.config.from_mapping(
         SECRET_KEY='dev',
+        SQLALCHEMY_DATABASE_URI='sqlite:///site.db',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
     oauth = OAuth()
+    db = SQLAlchemy(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
