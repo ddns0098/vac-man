@@ -104,5 +104,5 @@ venv.bak/
 .mypy_cache/
 
 # db
-.db
-.db-journal
+site.db
+site.db-journal

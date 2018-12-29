@@ -18,3 +18,15 @@ body {
   display: grid;
   grid-template-columns: 10% 80% 10%;
 }
+
+.d2 {
+  text-align: center;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+}
+
+table {
+  align-self: center;
+}

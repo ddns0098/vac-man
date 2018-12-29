@@ -2,6 +2,7 @@ from flask import redirect, url_for, session, request, jsonify, render_template
 from flaskr import app, db
 from flaskr.models import User, LeaveRequest
 from flask_oauthlib.client import OAuth
+import re, datetime, calendar
 import json
 
 REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
@@ -22,9 +23,11 @@ consumer_secret=app.config.get('GOOGLE_SECRET'))
 def index():
     if 'google_token' in session:
         me = google.get('userinfo')
-        #Check data
-        #return jsonify({"data": me.data})
-        return render_template('index.html')
+        generate_calendar = calendar.HTMLCalendar(firstweekday=0)
+        today = datetime.datetime.date(datetime.datetime.now())
+        current = re.split('-', str(today))
+        current_yr = int(current[0])
+        return render_template('index.html', calendar_html=generate_calendar.formatyear(current_yr, 4))
     return redirect(url_for('login'))
 
 @app.route('/login')
