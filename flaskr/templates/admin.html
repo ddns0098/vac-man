@@ -1,6 +1,21 @@
 {% extends "layout.html" %}
 {% block content %}
     <h1>Pending Accounts</h1>
+    {% for user in users %}
+      {% if user.user_group == 'unapproved' %}
+      <div class="pending">
+        <h4>{{ user.email }}</h4>
+        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-succes" type="submit" name="approve" value="{{ user.email }}">Approve</button> </form>
+        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button> </form>
+      </div>
+      {% endif %}
+    {% endfor %}
     <h1>Pending Leave Requests</h1>
     <h1>Accounts</h1>
+    {% for user in users %}
+      {% if user.user_group != 'unapproved' %}
+        <p>{{ user.email }}</p>
+        <p>{{ user.user_group}}</p>
+      {% endif %}
+    {% endfor %}
 {% endblock content %}

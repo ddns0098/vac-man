@@ -32,7 +32,17 @@ def index():
 
 @app.route('/admin')
 def admin():
-    return render_template('admin.html')
+    users = User.query.all()
+    return render_template('admin.html', users=users)
+
+@app.route('/handle_acc', methods=["GET","POST"])
+def handle_acc():
+    if request.method == 'POST'
+        delete = request.form.get('delete')
+        approve = request.form.get('approve')
+        if approve is not None:
+
+    return redirect(url_for('admin'))
 
 @app.route('/login')
 def login():
