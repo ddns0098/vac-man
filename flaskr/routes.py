@@ -22,13 +22,17 @@ consumer_secret=app.config.get('GOOGLE_SECRET'))
 @app.route('/')
 def index():
     if 'google_token' in session:
-        me = google.get('userinfo')
+        #current_user = google.get('userinfo')
         generate_calendar = calendar.HTMLCalendar(firstweekday=0)
         today = datetime.datetime.date(datetime.datetime.now())
         current = re.split('-', str(today))
         current_yr = int(current[0])
         return render_template('index.html', calendar_html=generate_calendar.formatyear(current_yr, 4))
     return redirect(url_for('login'))
+
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
 
 @app.route('/login')
 def login():
@@ -50,7 +54,8 @@ def authorized():
     session['google_token'] = (resp['access_token'], '')
     raw_data = json.dumps(google.get('userinfo').data)
     data = json.loads(raw_data)
-    user = User(email = data['email'])
+    session['current_user'] = data['email']
+    user = User(email = session.get('current_user', None))
     existing = User.query.filter_by(email=user.email).first()
     if existing is None:
         db.session.add(user)
