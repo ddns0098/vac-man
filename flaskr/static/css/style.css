@@ -20,10 +20,16 @@ body {
 }
 
 .d2 {
-  text-align: center;
   color: white;
   background-color: rgba(0, 0, 0, 0.7);
   display: block;
+}
+
+.pending {
+  display: flex;
+  border-bottom: 1px solid white;
+  margin-bottom: 2%;
+  padding: 2%;
 }
 
 .calendar{

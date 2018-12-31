@@ -5,7 +5,7 @@
       {% if user.user_group == 'unapproved' %}
       <div class="pending">
         <h4>{{ user.email }}</h4>
-        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-succes" type="submit" name="approve" value="{{ user.email }}">Approve</button> </form>
+        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-success" type="submit" name="approve" value="{{ user.email }}">Approve</button> </form>
         <form action="/handle_acc" method="POST" ><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button> </form>
       </div>
       {% endif %}

@@ -37,11 +37,13 @@ def admin():
 
 @app.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
-    if request.method == 'POST'
+    if request.method == 'POST':
         delete = request.form.get('delete')
         approve = request.form.get('approve')
-        if approve is not None:
-
+        if delete is not None:
+            user = User.query.filter_by(email=delete).first()
+            db.session.delete(user)
+            db.session.commit()
     return redirect(url_for('admin'))
 
 @app.route('/login')
