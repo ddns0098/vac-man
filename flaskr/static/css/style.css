@@ -25,11 +25,8 @@ body {
   display: block;
 }
 
-.pending {
-  display: flex;
-  border-bottom: 1px solid white;
-  margin-bottom: 2%;
-  padding: 2%;
+form {
+  margin-left: 2%;
 }
 
 .calendar{

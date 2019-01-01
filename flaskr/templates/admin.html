@@ -1,21 +1,84 @@
 {% extends "layout.html" %}
 {% block content %}
     <h1>Pending Accounts</h1>
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Email</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
     {% for user in users %}
       {% if user.user_group == 'unapproved' %}
-      <div class="pending">
-        <h4>{{ user.email }}</h4>
-        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-success" type="submit" name="approve" value="{{ user.email }}">Approve</button> </form>
-        <form action="/handle_acc" method="POST" ><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button> </form>
-      </div>
+        <tr>
+          <td>{{ user.email }}</td>
+          <td><form action="/handle_acc" method="POST"><button class="btn btn-outline-success" type="submit" name="approve" value="{{ user.email }}">Approve</button></form></td>
+          <td><form action="/handle_acc" method="POST"><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button></form></td>
+        </tr>
       {% endif %}
     {% endfor %}
+    </tbody>
+    </table>
     <h1>Pending Leave Requests</h1>
     <h1>Accounts</h1>
-    {% for user in users %}
-      {% if user.user_group != 'unapproved' %}
-        <p>{{ user.email }}</p>
-        <p>{{ user.user_group}}</p>
-      {% endif %}
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Email</th>
+        <th scope="col">User Group</th>
+        <th scope="col">Leave Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        {% if user.user_group != 'unapproved' %}
+          <tr>
+            <td>{{ user.email }}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{ user.user_group}}
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  {% for group in user_groups %}
+                    {% if user.user_group != group %}
+                      <form action="/handle_acc" method="POST" >
+                        <input type="hidden" name="user" value="{{ user.email }}">
+                        <input class="dropdown-item" type="submit" name="group" value="{{ group }}">
+                      </form>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </td>
+            <td></td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+    </table>
+    <h1>Leave Categories</h1>
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Leave Category</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for category in leave_categories %}
+      <tr>
+        <td>{{ category }}</td>
+        <td><form action="/handle_cat" method="POST" ><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ category }}">Delete</button> </form></td>
+      </tr>
     {% endfor %}
+      <form action = "/handle_cat" method = "POST">
+        <tr>
+          <td><input class="form-control" placeholder="New category" name="add"></td>
+          <td><input class="btn btn-outline-light" type="submit" value="Add"></td>
+        </tr>
+    </tbody>
+    </table>
 {% endblock content %}

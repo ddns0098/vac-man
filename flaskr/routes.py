@@ -33,17 +33,41 @@ def index():
 @app.route('/admin')
 def admin():
     users = User.query.all()
-    return render_template('admin.html', users=users)
+    return render_template('admin.html', users=users, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
 
 @app.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
     if request.method == 'POST':
-        delete = request.form.get('delete')
-        approve = request.form.get('approve')
-        if delete is not None:
-            user = User.query.filter_by(email=delete).first()
+        delete_email = request.form.get('delete')
+        approve_email = request.form.get('approve')
+        group = request.form.get('group')
+        user_email = request.form.get('user')
+        if delete_email is not None:
+            user = User.query.filter_by(email=delete_email).first()
             db.session.delete(user)
             db.session.commit()
+        elif approve_email is not None:
+            user = User.query.filter_by(email=approve_email).first()
+            user.user_group = 'viewer'
+            db.session.commit()
+        else:
+            user = User.query.filter_by(email=user_email).first()
+            user.user_group = group
+            db.session.commit()
+    return redirect(url_for('admin'))
+
+@app.route('/handle_cat', methods=["POST"])
+def handle_cat():
+    delete = request.form.get('delete')
+    add = request.form.get('add')
+    categories = app.config.get('LEAVE_CATEGORIES')
+    if delete is not None:
+        categories.remove(delete)
+        app.config.update(LEAVE_CATEGORIES=categories)
+    else:
+        if add:
+            categories.append(add)
+            app.config.update(LEAVE_CATEGORIES=categories)
     return redirect(url_for('admin'))
 
 @app.route('/login')
