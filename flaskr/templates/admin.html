@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
     <h1>Pending Accounts</h1>
-    <table class="table table-hover">
+    <table class="table table-condensed admin">
     <thead>
       <tr>
         <th scope="col">Email</th>
@@ -14,8 +14,8 @@
       {% if user.user_group == 'unapproved' %}
         <tr>
           <td>{{ user.email }}</td>
-          <td><form action="/handle_acc" method="POST"><button class="btn btn-outline-success" type="submit" name="approve" value="{{ user.email }}">Approve</button></form></td>
-          <td><form action="/handle_acc" method="POST"><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button></form></td>
+          <td><form action="/handle_acc" method="POST"><button class="btn btn-success" type="submit" name="approve" value="{{ user.email }}">Approve</button></form></td>
+          <td><form action="/handle_acc" method="POST"><button class="btn btn-danger" type="submit" name="delete" value="{{ user.email }}">Decline</button></form></td>
         </tr>
       {% endif %}
     {% endfor %}
@@ -23,7 +23,7 @@
     </table>
     <h1>Pending Leave Requests</h1>
     <h1>Accounts</h1>
-    <table class="table table-hover">
+    <table class="table table-condensed admin">
     <thead>
       <tr>
         <th scope="col">Email</th>
@@ -38,19 +38,18 @@
             <td>{{ user.email }}</td>
             <td>
               <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  {{ user.user_group}}
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{{ user.user_group}}
+                <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
                   {% for group in user_groups %}
                     {% if user.user_group != group %}
-                      <form action="/handle_acc" method="POST" >
+                      <li><form action="/handle_acc" method="POST" >
                         <input type="hidden" name="user" value="{{ user.email }}">
-                        <input class="dropdown-item" type="submit" name="group" value="{{ group }}">
-                      </form>
+                        <input class="btn btn-default" type="submit" name="group" value="{{ group }}">
+                      </form></li>
                     {% endif %}
                   {% endfor %}
-                </div>
+                  </ul>
               </div>
             </td>
             <td></td>
@@ -60,7 +59,7 @@
     </tbody>
     </table>
     <h1>Leave Categories</h1>
-    <table class="table table-hover">
+    <table class="table table-condensed admin">
     <thead>
       <tr>
         <th scope="col">Leave Category</th>
@@ -71,13 +70,13 @@
     {% for category in leave_categories %}
       <tr>
         <td>{{ category }}</td>
-        <td><form action="/handle_cat" method="POST" ><button class="btn btn-outline-danger" type="submit" name="delete" value="{{ category }}">Delete</button> </form></td>
+        <td><form action="/handle_cat" method="POST" ><button class="btn btn-danger" type="submit" name="delete" value="{{ category }}">Delete</button> </form></td>
       </tr>
     {% endfor %}
       <form action = "/handle_cat" method = "POST">
         <tr>
           <td><input class="form-control" placeholder="New category" name="add"></td>
-          <td><input class="btn btn-outline-light" type="submit" value="Add"></td>
+          <td><input class="btn btn-default" type="submit" value="Add"></td>
         </tr>
     </tbody>
     </table>

@@ -22,18 +22,27 @@ consumer_secret=app.config.get('GOOGLE_SECRET'))
 @app.route('/')
 def index():
     if 'google_token' in session:
-        #current_user = google.get('userinfo')
+        raw_data = json.dumps(google.get('userinfo').data)
+        data = json.loads(raw_data)
+        email = data['email']
+        current_user = User.query.filter_by(email=email).first()
         generate_calendar = calendar.HTMLCalendar(firstweekday=0)
         today = datetime.datetime.date(datetime.datetime.now())
         current = re.split('-', str(today))
         current_yr = int(current[0])
-        return render_template('index.html', calendar_html=generate_calendar.formatyear(current_yr, 4))
+        return render_template('index.html', calendar_html=generate_calendar.formatyear(current_yr, 4), current_user=current_user)
     return redirect(url_for('login'))
 
 @app.route('/admin')
 def admin():
-    users = User.query.all()
-    return render_template('admin.html', users=users, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+    raw_data = json.dumps(google.get('userinfo').data)
+    data = json.loads(raw_data)
+    email = data['email']
+    current_user = User.query.filter_by(email=email).first()
+    if current_user.user_group == 'administrator':
+        users = User.query.all()
+        return render_template('admin.html', users=users, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+    return redirect(url_for('index'))
 
 @app.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
@@ -90,10 +99,10 @@ def authorized():
     session['google_token'] = (resp['access_token'], '')
     raw_data = json.dumps(google.get('userinfo').data)
     data = json.loads(raw_data)
-    session['current_user'] = data['email']
-    user = User(email = session.get('current_user', None))
-    existing = User.query.filter_by(email=user.email).first()
+    email = data['email']
+    existing = User.query.filter_by(email=email).first()
     if existing is None:
+        user = User(email = email)
         db.session.add(user)
         db.session.commit()
     return redirect(url_for('index'))

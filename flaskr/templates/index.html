@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
+{% block admin %}
+{% if current_user.user_group == 'administrator' %}
+  <a href="/admin">Admin</a>
+{% endif %}
+{% endblock admin %}
 {% block content %}
-  <div class="calendar">
-    {{calendar_html|safe}}
-  </div>
+  <div data-provide="calendar"></div>
 {% endblock content %}

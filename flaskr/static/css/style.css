@@ -14,7 +14,7 @@ body {
   background-attachment: fixed;
 }
 
-.container {
+.main-container {
   display: grid;
   grid-template-columns: 10% 80% 10%;
 }
@@ -22,18 +22,45 @@ body {
 .d2 {
   color: white;
   background-color: rgba(0, 0, 0, 0.7);
-  display: block;
 }
 
 form {
   margin-left: 2%;
 }
 
-.calendar{
-  display: flex;
-  justify-content: center;
+nav {
+  background-color: #141414;
+  width: 100%;
+  height: 40px;
+  top: 0;
+  color: white;
 }
 
-table {
-  align-self: center;
+.wrapper {
+  padding-top: 10px;
+}
+
+.wrapper a {
+  margin-top: 10px;
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+}
+
+.wrapper a:hover {
+  background-color: #1c1c1c;
+}
+
+.logo {
+  margin-top: -10px;
+  padding-right: 1%;
+  font-family: 'Hind', sans-serif;
+  font-size: 2em;
+  letter-spacing: -2px;
+  text-shadow: 1px 1px 2px #c4c4c4;
+  float: right;
+}
+
+.admin {
+  font-size: 1.5em;
 }
