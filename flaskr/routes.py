@@ -57,18 +57,14 @@ def save_request():
     current_user = User.query.filter_by(email=request.form.get('current_user')).first()
     if current_user.user_group == 'viewer':
         return redirect(url_for('index'))
-    start_date = request.form.get('start-date')
-    end_date = request.form.get('end-date')
-    leave_request = LeaveRequest(start_date = start_date,
-                                end_date = end_date,
+    start_date_split = request.form.get('start-date').split("/")
+    end_date_split = request.form.get('end-date').split("/")
+    leave_request = LeaveRequest(start_date = datetime.datetime.strptime(start_date_split[2] + '-' + start_date_split[0] + '-' + start_date_split[1], '%Y-%m-%d'),
+                                end_date = datetime.datetime.strptime(end_date_split[2] + '-' + end_date_split[0] + '-' + end_date_split[1], '%Y-%m-%d'),
                                 state = 'pending',
                                 user_id = current_user.id)
     if current_user.user_group == 'administrator':
         leave_request.state = 'accpeted'
-    if request.form.get('note') is None:
-        leave_request.note = current_user.email
-    else:
-        leave_request.note = request.form.get('note')
     db.session.add(leave_request)
     db.session.commit()
     return redirect(url_for('index'))
