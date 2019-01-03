@@ -61,7 +61,7 @@ nav {
   float: right;
 }
 
-.admin {
+.admin, .account {
   font-size: 1.5em;
 }
 

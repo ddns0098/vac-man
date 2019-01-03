@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block admin %}
+{% if current_user.user_group == 'administrator' %}
+  <a href="/admin">Admin</a>
+{% endif %}
+{% endblock admin %}
+{% block content %}
+<h1>Account</h1>
+<table class="table table-condensed account">
+<thead>
+  <tr>
+    <th scope="col">Email</th>
+    <th scope="col">User Group</th>
+    <th scope="col">Leave Category</th>
+    <th scope="col">Days Left</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>{{ current_user.email }}</td>
+    <td>{{ current_user.user_group }}</td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
+{% endblock content %}

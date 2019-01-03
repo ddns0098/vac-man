@@ -27,6 +27,7 @@
             <span class="logo">Vacation Management</span>
             <a href="/">Home</a>
             {% block admin %}{% endblock admin %}
+            <a href="/account">Account</a>
           </div>
         </nav>
       </div>
@@ -35,152 +36,12 @@
       <div class="d1">
       </div>
       <div class="d2">
-        {% block content %}{% endblock %}
+        {% block content %}{% endblock content %}
       </div>
       <div class="d3">
       </div>
     </div>
     <!-- Optional JavaScript -->
-    <script>
-    function editEvent(event) {
-    $('#event-modal input[name="event-index"]').val(event ? event.id : '');
-    $('#event-modal input[name="event-note"]').val(event ? event.note : '');
-    $('#event-modal input[name="event-start-date"]').datepicker('update', event ? event.startDate : '');
-    $('#event-modal input[name="event-end-date"]').datepicker('update', event ? event.endDate : '');
-    $('#event-modal').modal();
-}
-
-function deleteEvent(event) {
-    var dataSource = $('#calendar').data('calendar').getDataSource();
-
-    for(var i in dataSource) {
-        if(dataSource[i].id == event.id) {
-            dataSource.splice(i, 1);
-            break;
-        }
-    }
-
-    $('#calendar').data('calendar').setDataSource(dataSource);
-}
-
-function saveEvent() {
-    var event = {
-        id: $('#event-modal input[name="event-index"]').val(),
-        note: $('#event-modal input[name="event-note"]').val(),
-        startDate: $('#event-modal input[name="event-start-date"]').datepicker('getDate'),
-        endDate: $('#event-modal input[name="event-end-date"]').datepicker('getDate'),
-        color: 'yellow'
-    }
-
-    var dataSource = $('#calendar').data('calendar').getDataSource();
-
-    if(event.id) {
-        for(var i in dataSource) {
-            if(dataSource[i].id == event.id) {
-                dataSource[i].note = event.note;
-                dataSource[i].startDate = event.startDate;
-                dataSource[i].endDate = event.endDate;
-            }
-        }
-    }
-    else
-    {
-        var newId = 0;
-        for(var i in dataSource) {
-            if(dataSource[i].id > newId) {
-                newId = dataSource[i].id;
-            }
-        }
-
-        newId++;
-        event.id = newId;
-
-        dataSource.push(event);
-    }
-
-    $('#calendar').data('calendar').setDataSource(dataSource);
-    $('#event-modal').modal('hide');
-}
-
-$(function() {
-    var currentYear = new Date().getFullYear();
-
-    $('#calendar').calendar({
-        enableContextMenu: true,
-        enableRangeSelection: true,
-        contextMenuItems:[
-            {
-                text: 'Update',
-                click: editEvent
-            },
-            {
-                text: 'Delete',
-                click: deleteEvent
-            }
-        ],
-        selectRange: function(e) {
-            editEvent({ startDate: e.startDate, endDate: e.endDate });
-        },
-        mouseOnDay: function(e) {
-            if(e.events.length > 0) {
-                var content = '';
-
-                for(var i in e.events) {
-                    content += '<div class="event-tooltip-content">'
-                                    + '<div class="event-note" style="color: yellow">' + e.events[i].note + '</div>'
-                                + '</div>';
-                }
-
-                $(e.element).popover({
-                    trigger: 'manual',
-                    container: 'body',
-                    html:true,
-                    content: content
-                });
-
-                $(e.element).popover('show');
-            }
-        },
-        mouseOutDay: function(e) {
-            if(e.events.length > 0) {
-                $(e.element).popover('hide');
-            }
-        },
-        dayContextMenu: function(e) {
-            $(e.element).popover('hide');
-        },
-        dataSource: [
-            {
-                id: 0,
-                note: 'Google I/O',
-                startDate: new Date(currentYear, 4, 28),
-                endDate: new Date(currentYear, 4, 29)
-            },
-            {
-                id: 1,
-                note: 'Microsoft Convergence',
-                startDate: new Date(currentYear, 2, 16),
-                endDate: new Date(currentYear, 2, 19)
-            },
-            {
-                id: 2,
-                note: 'Microsoft Build Developer Conference',
-                startDate: new Date(currentYear, 3, 29),
-                endDate: new Date(currentYear, 4, 1)
-            },
-            {
-                id: 3,
-                note: 'Apple Special Event',
-                startDate: new Date(currentYear, 8, 1),
-                endDate: new Date(currentYear, 8, 1)
-            }
-        ]
-    });
-
-    $('#save-event').click(function() {
-        saveEvent();
-    });
-});
-    </script>
+    {% block script %}{% endblock script %}
   </body>
 </html>

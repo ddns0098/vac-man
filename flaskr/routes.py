@@ -44,6 +44,35 @@ def admin():
         return render_template('admin.html', users=users, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
     return redirect(url_for('index'))
 
+@app.route('/account')
+def account():
+    raw_data = json.dumps(google.get('userinfo').data)
+    data = json.loads(raw_data)
+    email = data['email']
+    current_user = User.query.filter_by(email=email).first()
+    return render_template('account.html', current_user=current_user)
+
+@app.route('/save_request', methods=["GET","POST"])
+def save_request():
+    current_user = User.query.filter_by(email=request.form.get('current_user')).first()
+    if current_user.user_group == 'viewer':
+        return redirect(url_for('index'))
+    start_date = request.form.get('start-date')
+    end_date = request.form.get('end-date')
+    leave_request = LeaveRequest(start_date = start_date,
+                                end_date = end_date,
+                                state = 'pending',
+                                user_id = current_user.id)
+    if current_user.user_group == 'administrator':
+        leave_request.state = 'accpeted'
+    if request.form.get('note') is None:
+        leave_request.note = current_user.email
+    else:
+        leave_request.note = request.form.get('note')
+    db.session.add(leave_request)
+    db.session.commit()
+    return redirect(url_for('index'))
+
 @app.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
     if request.method == 'POST':
