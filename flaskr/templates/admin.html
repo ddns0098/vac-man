@@ -22,6 +22,30 @@
     </tbody>
     </table>
     <h1>Pending Leave Requests</h1>
+    <table class="table table-condensed admin">
+    <thead>
+      <tr>
+        <th scope="col">Email</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for request in leave_requests %}
+      {% if request.state == 'pending' %}
+        <tr>
+          <td>{{ request.user.email }}</td>
+          <td>{{ request.start_date|dateformat }}</td>
+          <td>{{ request.end_date|dateformat }}</td>
+          <td><form action="/handle_request" method="POST"><button class="btn btn-success" type="submit" name="accept" value="{{ request.id }}">Approve</button></form></td>
+          <td><form action="/handle_request" method="POST"><button class="btn btn-danger" type="submit" name="decline" value="{{ request.id }}">Decline</button></form></td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+    </table>
     <h1>Accounts</h1>
     <table class="table table-condensed admin">
     <thead>

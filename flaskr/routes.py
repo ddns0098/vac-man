@@ -26,11 +26,7 @@ def index():
         data = json.loads(raw_data)
         email = data['email']
         current_user = User.query.filter_by(email=email).first()
-        generate_calendar = calendar.HTMLCalendar(firstweekday=0)
-        today = datetime.datetime.date(datetime.datetime.now())
-        current = re.split('-', str(today))
-        current_yr = int(current[0])
-        return render_template('index.html', calendar_html=generate_calendar.formatyear(current_yr, 4), current_user=current_user)
+        return render_template('index.html', current_user=current_user)
     return redirect(url_for('login'))
 
 @app.route('/admin')
@@ -41,7 +37,8 @@ def admin():
     current_user = User.query.filter_by(email=email).first()
     if current_user.user_group == 'administrator':
         users = User.query.all()
-        return render_template('admin.html', users=users, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+        leave_requests = LeaveRequest.query.filter_by(state='pending').all()
+        return render_template('admin.html', users=users, leave_requests=leave_requests, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
     return redirect(url_for('index'))
 
 @app.route('/account')
@@ -64,10 +61,25 @@ def save_request():
                                 state = 'pending',
                                 user_id = current_user.id)
     if current_user.user_group == 'administrator':
-        leave_request.state = 'accpeted'
+        leave_request.state = 'accepted'
     db.session.add(leave_request)
     db.session.commit()
     return redirect(url_for('index'))
+
+@app.route('/handle_request', methods=["POST"])
+def handle_request():
+    if request.method == 'POST':
+        accept_request = request.form.get('accept')
+        decline_request = request.form.get('decline')
+        if accept_request is not None:
+            leave_request = LeaveRequest.query.filter_by(id=accept_request).first()
+            leave_request.state = 'accepted'
+            db.session.commit()
+        else:
+            leave_request = LeaveRequest.query.filter_by(id=decline_request).first()
+            leave_request.state = 'declined'
+            db.session.commit()
+    return redirect(url_for('admin'))
 
 @app.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
@@ -135,3 +147,7 @@ def authorized():
 @google.tokengetter
 def get_google_oauth_token():
     return session.get('google_token')
+
+@app.template_filter('dateformat')
+def dateformat(date):
+    return date.strftime('%Y-%m-%d')
