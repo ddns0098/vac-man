@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block admin %}
+  <a href="/admin">Admin</a>
+  <a href="/requests">Leave Requests</a>
+{% endblock admin %}
+{% block content %}
+  <h1>Browse Leave Requests</h1>
+  <table class="table table-condensed admin">
+  <thead>
+    <tr>
+      <th scope="col">Email</th>
+      <th scope="col">Start Date</th>
+      <th scope="col">End Date</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for request in leave_requests %}
+      <tr>
+        <td>{{ request.user.email }}</td>
+        <td>{{ request.start_date|dateformat }}</td>
+        <td>{{ request.end_date|dateformat }}</td>
+        <td>
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{{ request.state }}
+            <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                {% if request.state == 'pending' %}
+                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button></form></li>
+                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button></form></li>
+                {% elif request.state == 'accepted' %}
+                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button></form></li>
+                {% else %}
+                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button></form></li>
+                {% endif %}
+              </ul>
+          </div>
+        </td>
+      </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  {% if prev_url %}
+  <a class="btn btn-primary" href="{{ prev_url }}">Previous</a>
+  {% endif %}
+  {% if next_url %}
+  <a class="btn btn-primary" href="{{ next_url }}">Next</a>
+  {% endif %}
+{% endblock content %}

@@ -37,8 +37,29 @@ def admin():
     current_user = User.query.filter_by(email=email).first()
     if current_user.user_group == 'administrator':
         users = User.query.all()
-        leave_requests = LeaveRequest.query.filter_by(state='pending').all()
-        return render_template('admin.html', users=users, leave_requests=leave_requests, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+        page = request.args.get('page', 1 , type=int)
+        leave_requests = LeaveRequest.query.filter_by(state='pending').paginate(page, app.config.get('REQUESTS_PER_PAGE_ADMIN'), False)
+        next_url = url_for('admin', page=leave_requests.next_num) \
+        if leave_requests.has_next else None
+        prev_url = url_for('admin', page=leave_requests.prev_num) \
+        if leave_requests.has_prev else None
+        return render_template('admin.html', users=users, leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+    return redirect(url_for('index'))
+
+@app.route('/requests')
+def requests():
+    raw_data = json.dumps(google.get('userinfo').data)
+    data = json.loads(raw_data)
+    email = data['email']
+    current_user = User.query.filter_by(email=email).first()
+    if current_user.user_group == 'administrator':
+        page = request.args.get('page', 1 , type=int)
+        leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.desc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
+        next_url = url_for('requests', page=leave_requests.next_num) \
+        if leave_requests.has_next else None
+        prev_url = url_for('requests', page=leave_requests.prev_num) \
+        if leave_requests.has_prev else None
+        return render_template('requests.html', leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url)
     return redirect(url_for('index'))
 
 @app.route('/account')
@@ -52,7 +73,7 @@ def account():
 @app.route('/save_request', methods=["GET","POST"])
 def save_request():
     current_user = User.query.filter_by(email=request.form.get('current_user')).first()
-    if current_user.user_group == 'viewer':
+    if current_user.user_group == 'viewer' or current_user.user_group == 'unapproved':
         return redirect(url_for('index'))
     start_date_split = request.form.get('start-date').split("/")
     end_date_split = request.form.get('end-date').split("/")
