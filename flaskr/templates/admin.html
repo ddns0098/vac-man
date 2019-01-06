@@ -85,7 +85,23 @@
                   </ul>
               </div>
             </td>
-            <td></td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">{{ user.leave_category.category }}
+                <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                  {% for category in leave_categories %}
+                    {% if user.leave_category != category %}
+                      <li><form action="/handle_acc" method="POST" >
+                        <input type="hidden" name="user" value="{{ user.email }}">
+                        <input type="hidden" name="category" value="{{ category.id }}">
+                        <input class="btn btn-default" type="submit" value="{{ category.category }}">
+                      </form></li>
+                    {% endif %}
+                  {% endfor %}
+                  </ul>
+              </div>
+            </td>
           </tr>
         {% endif %}
       {% endfor %}

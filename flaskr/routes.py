@@ -109,6 +109,7 @@ def handle_acc():
         delete_email = request.form.get('delete')
         approve_email = request.form.get('approve')
         group = request.form.get('group')
+        category = request.form.get('category')
         user_email = request.form.get('user')
         if delete_email is not None:
             user = User.query.filter_by(email=delete_email).first()
@@ -117,6 +118,10 @@ def handle_acc():
         elif approve_email is not None:
             user = User.query.filter_by(email=approve_email).first()
             user.user_group = 'viewer'
+            db.session.commit()
+        elif category is not None:
+            user = User.query.filter_by(email=user_email).first()
+            user.leave_category_id = category
             db.session.commit()
         else:
             user = User.query.filter_by(email=user_email).first()
@@ -131,7 +136,7 @@ def handle_cat():
     max_days = request.form.get('max_days')
     if delete is not None:
         category = LeaveCategory.query.filter_by(id=delete).first()
-        db.session.delete(user)
+        db.session.delete(category)
         db.session.commit()
     else:
         category = LeaveCategory(category = add, max_days = max_days)

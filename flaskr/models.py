@@ -29,4 +29,4 @@ class LeaveCategory(db.Model):
     users = db.relationship('User', backref='leave_category', lazy=True)
 
     def __repr__(self):
-        return f"LeaveCategory('{self.category}', '{self.days}')"
+        return f"LeaveCategory('{self.category}', '{self.max_days}')"
