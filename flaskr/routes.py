@@ -1,6 +1,6 @@
 from flask import redirect, url_for, session, request, jsonify, render_template
 from flaskr import app, db
-from flaskr.models import User, LeaveRequest
+from flaskr.models import User, LeaveRequest, LeaveCategory
 from flask_oauthlib.client import OAuth
 import re, datetime, calendar
 import json
@@ -37,13 +37,14 @@ def admin():
     current_user = User.query.filter_by(email=email).first()
     if current_user.user_group == 'administrator':
         users = User.query.all()
+        leave_categories = LeaveCategory.query.all()
         page = request.args.get('page', 1 , type=int)
         leave_requests = LeaveRequest.query.filter_by(state='pending').paginate(page, app.config.get('REQUESTS_PER_PAGE_ADMIN'), False)
         next_url = url_for('admin', page=leave_requests.next_num) \
         if leave_requests.has_next else None
         prev_url = url_for('admin', page=leave_requests.prev_num) \
         if leave_requests.has_prev else None
-        return render_template('admin.html', users=users, leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url, leave_categories=app.config.get('LEAVE_CATEGORIES'), user_groups=app.config.get('USER_GROUPS'))
+        return render_template('admin.html', users=users, leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url, leave_categories=leave_categories, user_groups=app.config.get('USER_GROUPS'))
     return redirect(url_for('index'))
 
 @app.route('/requests')
@@ -54,7 +55,7 @@ def requests():
     current_user = User.query.filter_by(email=email).first()
     if current_user.user_group == 'administrator':
         page = request.args.get('page', 1 , type=int)
-        leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.desc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
+        leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.asc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
         next_url = url_for('requests', page=leave_requests.next_num) \
         if leave_requests.has_next else None
         prev_url = url_for('requests', page=leave_requests.prev_num) \
@@ -127,14 +128,15 @@ def handle_acc():
 def handle_cat():
     delete = request.form.get('delete')
     add = request.form.get('add')
-    categories = app.config.get('LEAVE_CATEGORIES')
+    max_days = request.form.get('max_days')
     if delete is not None:
-        categories.remove(delete)
-        app.config.update(LEAVE_CATEGORIES=categories)
+        category = LeaveCategory.query.filter_by(id=delete).first()
+        db.session.delete(user)
+        db.session.commit()
     else:
-        if add:
-            categories.append(add)
-            app.config.update(LEAVE_CATEGORIES=categories)
+        category = LeaveCategory(category = add, max_days = max_days)
+        db.session.add(category)
+        db.session.commit()
     return redirect(url_for('admin'))
 
 @app.route('/login')

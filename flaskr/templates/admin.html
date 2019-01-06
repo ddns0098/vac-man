@@ -96,21 +96,25 @@
     <thead>
       <tr>
         <th scope="col">Leave Category</th>
+        <th scope="col">Maximum Days</th>
         <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
     {% for category in leave_categories %}
       <tr>
-        <td>{{ category }}</td>
-        <td><form action="/handle_cat" method="POST" ><button class="btn btn-danger" type="submit" name="delete" value="{{ category }}">Delete</button> </form></td>
+        <td>{{ category.category }}</td>
+        <td>{{ category.max_days }}</td>
+        <td><form action="/handle_cat" method="POST" ><button class="btn btn-danger" type="submit" name="delete" value="{{ category.id }}">Delete</button> </form></td>
       </tr>
     {% endfor %}
       <form action = "/handle_cat" method = "POST">
         <tr>
-          <td><input class="form-control" placeholder="New category" name="add"></td>
+          <td><input class="form-control" placeholder="New category" type="text" name="add"></td>
+          <td><input class="form-control" placeholder="Days" type="number" min="1" step="1" name="max_days"></td>
           <td><input class="btn btn-default" type="submit" value="Add"></td>
         </tr>
+      </form>
     </tbody>
     </table>
 {% endblock content %}
