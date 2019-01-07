@@ -22,19 +22,13 @@ consumer_secret=app.config.get('GOOGLE_SECRET'))
 @app.route('/')
 def index():
     if 'google_token' in session:
-        raw_data = json.dumps(google.get('userinfo').data)
-        data = json.loads(raw_data)
-        email = data['email']
-        current_user = User.query.filter_by(email=email).first()
+        current_user = getCurrentUser()
         return render_template('index.html', current_user=current_user)
     return redirect(url_for('login'))
 
 @app.route('/admin')
 def admin():
-    raw_data = json.dumps(google.get('userinfo').data)
-    data = json.loads(raw_data)
-    email = data['email']
-    current_user = User.query.filter_by(email=email).first()
+    current_user = getCurrentUser()
     if current_user.user_group == 'administrator':
         users = User.query.all()
         leave_categories = LeaveCategory.query.all()
@@ -49,10 +43,7 @@ def admin():
 
 @app.route('/requests')
 def requests():
-    raw_data = json.dumps(google.get('userinfo').data)
-    data = json.loads(raw_data)
-    email = data['email']
-    current_user = User.query.filter_by(email=email).first()
+    current_user = getCurrentUser()
     if current_user.user_group == 'administrator':
         page = request.args.get('page', 1 , type=int)
         leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.asc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
@@ -65,10 +56,7 @@ def requests():
 
 @app.route('/account')
 def account():
-    raw_data = json.dumps(google.get('userinfo').data)
-    data = json.loads(raw_data)
-    email = data['email']
-    current_user = User.query.filter_by(email=email).first()
+    current_user = getCurrentUser()
     return render_template('account.html', current_user=current_user)
 
 @app.route('/save_request', methods=["GET","POST"])
@@ -179,3 +167,9 @@ def get_google_oauth_token():
 @app.template_filter('dateformat')
 def dateformat(date):
     return date.strftime('%Y-%m-%d')
+
+def getCurrentUser():
+    raw_data = json.dumps(google.get('userinfo').data)
+    data = json.loads(raw_data)
+    email = data['email']
+    return User.query.filter_by(email=email).first()
