@@ -1,4 +1,4 @@
-from flask import redirect, url_for, session, request, jsonify, render_template
+from flask import redirect, url_for, session, request, jsonify, render_template, flash
 from flaskr import app, db
 from flaskr.models import User, LeaveRequest, LeaveCategory
 from flask_oauthlib.client import OAuth
@@ -57,7 +57,11 @@ def requests():
 @app.route('/account')
 def account():
     current_user = getCurrentUser()
-    return render_template('account.html', current_user=current_user)
+    if current_user.leave_category is None:
+        days_left = "You don't have a leave category yet."
+    else:
+        days_left = getDaysLeft(current_user)
+    return render_template('account.html', current_user=current_user, days_left=days_left)
 
 @app.route('/save_request', methods=["GET","POST"])
 def save_request():
@@ -66,14 +70,21 @@ def save_request():
         return redirect(url_for('index'))
     start_date_split = request.form.get('start-date').split("/")
     end_date_split = request.form.get('end-date').split("/")
-    leave_request = LeaveRequest(start_date = datetime.datetime.strptime(start_date_split[2] + '-' + start_date_split[0] + '-' + start_date_split[1], '%Y-%m-%d'),
-                                end_date = datetime.datetime.strptime(end_date_split[2] + '-' + end_date_split[0] + '-' + end_date_split[1], '%Y-%m-%d'),
-                                state = 'pending',
-                                user_id = current_user.id)
-    if current_user.user_group == 'administrator':
-        leave_request.state = 'accepted'
-    db.session.add(leave_request)
-    db.session.commit()
+    start_date = datetime.datetime.strptime(start_date_split[2] + '-' + start_date_split[0] + '-' + start_date_split[1], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(end_date_split[2] + '-' + end_date_split[0] + '-' + end_date_split[1], '%Y-%m-%d')
+    days = end_date - start_date
+    if days.days + 1 <= getDaysLeft(current_user):
+        leave_request = LeaveRequest(start_date = start_date,
+                                    end_date = end_date,
+                                    state = 'pending',
+                                    user_id = current_user.id)
+        if current_user.user_group == 'administrator':
+            leave_request.state = 'accepted'
+        current_user.days += days.days + 1
+        db.session.add(leave_request)
+        db.session.commit()
+        return redirect(url_for('index'))
+    flash("You only have " + str(getDaysLeft(current_user)) + " days left!")
     return redirect(url_for('index'))
 
 @app.route('/handle_request', methods=["POST"])
@@ -83,12 +94,19 @@ def handle_request():
         decline_request = request.form.get('decline')
         if accept_request is not None:
             leave_request = LeaveRequest.query.filter_by(id=accept_request).first()
+            if leave_request.state != 'pending':
+                days = leave_request.end_date - leave_request.start_date
+                leave_request.user.days += days.days + 1
             leave_request.state = 'accepted'
             db.session.commit()
         else:
             leave_request = LeaveRequest.query.filter_by(id=decline_request).first()
             leave_request.state = 'declined'
+            days_back = leave_request.end_date - leave_request.start_date
+            leave_request.user.days -= days_back.days + 1
             db.session.commit()
+        if request.form.get('site'):
+            return redirect(url_for('requests'))
     return redirect(url_for('admin'))
 
 @app.route('/handle_acc', methods=["GET","POST"])
@@ -173,3 +191,6 @@ def getCurrentUser():
     data = json.loads(raw_data)
     email = data['email']
     return User.query.filter_by(email=email).first()
+
+def getDaysLeft(user):
+    return user.leave_category.max_days - user.days

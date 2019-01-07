@@ -26,12 +26,32 @@
             <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 {% if request.state == 'pending' %}
-                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button></form></li>
-                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button></form></li>
+                  <li>
+                    <form action="/handle_request" method="POST">
+                      <input type="hidden" name="site" value="requests">
+                      <button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button>
+                    </form>
+                  </li>
+                  <li>
+                    <form action="/handle_request" method="POST">
+                      <input type="hidden" name="site" value="requests">
+                      <button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button>
+                    </form>
+                  </li>
                 {% elif request.state == 'accepted' %}
-                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button></form></li>
+                  <li>
+                    <form action="/handle_request" method="POST">
+                      <input type="hidden" name="site" value="requests">
+                      <button class="btn btn-default" type="submit" name="decline" value="{{ request.id }}">Decline</button>
+                    </form>
+                  </li>
                 {% else %}
-                  <li><form action="/handle_request" method="POST"><button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button></form></li>
+                  <li>
+                    <form action="/handle_request" method="POST">
+                      <input type="hidden" name="site" value="requests">
+                      <button class="btn btn-default" type="submit" name="accept" value="{{ request.id }}">Accept</button>
+                  </form>
+                  </li>
                 {% endif %}
               </ul>
           </div>

@@ -6,10 +6,21 @@
 {% endif %}
 {% endblock admin %}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+         {% if messages %}
+               {% for message in messages %}
+               <p class="alert alert-danger"> {{ message }} </p>
+               {% endfor %}
+         {% endif %}
+{% endwith %}
 {% if current_user.user_group != 'unapproved' %}
 <div id="calendar"></div>
 {% endif %}
-{% if current_user.user_group != 'viewer' %}
+{% if current_user.user_group == 'viewer' %}
+<h4>Viewers can't create leave requests!</h4>
+{% elif current_user.leave_category is none %}
+<h4>You can't create leave requests until an administrator sets your leave category!</h4>
+{% else %}
 <div style="display: none;" class="modal modal-fade" id="event-modal">
   <div class="modal-dialog">
       <div class="modal-content">
