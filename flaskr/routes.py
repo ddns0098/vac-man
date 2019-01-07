@@ -1,7 +1,8 @@
 from flask import redirect, url_for, session, request, jsonify, render_template, flash
-from flaskr import app, db
+from flaskr import app, db, mail
 from flaskr.models import User, LeaveRequest, LeaveCategory
 from flask_oauthlib.client import OAuth
+from flask_mail import Message
 import re, datetime, calendar
 import json
 
@@ -22,13 +23,13 @@ consumer_secret=app.config.get('GOOGLE_SECRET'))
 @app.route('/')
 def index():
     if 'google_token' in session:
-        current_user = getCurrentUser()
+        current_user = get_current_user()
         return render_template('index.html', current_user=current_user)
     return redirect(url_for('login'))
 
 @app.route('/admin')
 def admin():
-    current_user = getCurrentUser()
+    current_user = get_current_user()
     if current_user.user_group == 'administrator':
         users = User.query.all()
         leave_categories = LeaveCategory.query.all()
@@ -43,7 +44,7 @@ def admin():
 
 @app.route('/requests')
 def requests():
-    current_user = getCurrentUser()
+    current_user = get_current_user()
     if current_user.user_group == 'administrator':
         page = request.args.get('page', 1 , type=int)
         leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.asc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
@@ -56,11 +57,11 @@ def requests():
 
 @app.route('/account')
 def account():
-    current_user = getCurrentUser()
+    current_user = get_current_user()
     if current_user.leave_category is None:
         days_left = "You don't have a leave category yet."
     else:
-        days_left = getDaysLeft(current_user)
+        days_left = get_days_left(current_user)
     return render_template('account.html', current_user=current_user, days_left=days_left)
 
 @app.route('/save_request', methods=["GET","POST"])
@@ -73,7 +74,7 @@ def save_request():
     start_date = datetime.datetime.strptime(start_date_split[2] + '-' + start_date_split[0] + '-' + start_date_split[1], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(end_date_split[2] + '-' + end_date_split[0] + '-' + end_date_split[1], '%Y-%m-%d')
     days = end_date - start_date
-    if days.days + 1 <= getDaysLeft(current_user):
+    if days.days + 1 <= get_days_left(current_user):
         leave_request = LeaveRequest(start_date = start_date,
                                     end_date = end_date,
                                     state = 'pending',
@@ -83,8 +84,10 @@ def save_request():
         current_user.days += days.days + 1
         db.session.add(leave_request)
         db.session.commit()
+        change = current_user.email + " created a leave request."
+        send_email(change)
         return redirect(url_for('index'))
-    flash("You only have " + str(getDaysLeft(current_user)) + " days left!")
+    flash("You only have " + str(get_days_left(current_user)) + " days left!")
     return redirect(url_for('index'))
 
 @app.route('/handle_request', methods=["POST"])
@@ -99,12 +102,16 @@ def handle_request():
                 leave_request.user.days += days.days + 1
             leave_request.state = 'accepted'
             db.session.commit()
+            change = leave_request.user.email + "'s leave request has been accepted."
+            send_email(change, leave_request.user.email)
         else:
             leave_request = LeaveRequest.query.filter_by(id=decline_request).first()
             leave_request.state = 'declined'
             days_back = leave_request.end_date - leave_request.start_date
             leave_request.user.days -= days_back.days + 1
             db.session.commit()
+            change = leave_request.user.email + "'s leave request has been declined."
+            send_email(change, leave_request.user.email)
         if request.form.get('site'):
             return redirect(url_for('requests'))
     return redirect(url_for('admin'))
@@ -121,18 +128,26 @@ def handle_acc():
             user = User.query.filter_by(email=delete_email).first()
             db.session.delete(user)
             db.session.commit()
+            change = user_email + "'s account has been deleted."
+            send_email(change, user_email)
         elif approve_email is not None:
             user = User.query.filter_by(email=approve_email).first()
             user.user_group = 'viewer'
             db.session.commit()
+            change = user_email + " has been approved."
+            send_email(change, user_email)
         elif category is not None:
             user = User.query.filter_by(email=user_email).first()
             user.leave_category_id = category
             db.session.commit()
+            change = user_email + "'s category has been changed."
+            send_email(change, user_email)
         else:
             user = User.query.filter_by(email=user_email).first()
             user.user_group = group
             db.session.commit()
+            change = user_email + "'s user group has been changed."
+            send_email(change, user_email)
     return redirect(url_for('admin'))
 
 @app.route('/handle_cat', methods=["POST"])
@@ -144,10 +159,14 @@ def handle_cat():
         category = LeaveCategory.query.filter_by(id=delete).first()
         db.session.delete(category)
         db.session.commit()
+        change = category.category + " has been deleted."
+        send_email(change)
     else:
         category = LeaveCategory(category = add, max_days = max_days)
         db.session.add(category)
         db.session.commit()
+        change = category.category + " has been added."
+        send_email(change)
     return redirect(url_for('admin'))
 
 @app.route('/login')
@@ -176,6 +195,8 @@ def authorized():
         user = User(email = email)
         db.session.add(user)
         db.session.commit()
+        change = user.email + " logged in for the first time."
+        send_email(change)
     return redirect(url_for('index'))
 
 @google.tokengetter
@@ -186,11 +207,37 @@ def get_google_oauth_token():
 def dateformat(date):
     return date.strftime('%Y-%m-%d')
 
-def getCurrentUser():
+def get_current_user():
     raw_data = json.dumps(google.get('userinfo').data)
     data = json.loads(raw_data)
     email = data['email']
     return User.query.filter_by(email=email).first()
 
-def getDaysLeft(user):
+def get_days_left(user):
     return user.leave_category.max_days - user.days
+
+def send_email(change, email=None):
+    admins = User.query.filter_by(user_group='administrator').all()
+    emails = []
+    for admin in admins:
+        emails.append(admin.email)
+    if email is not None:
+        user = User.query.filter_by(email=email).first()
+        if user.user_group != 'administrator':
+            emails.append(user.email)
+    msg = Message('Vacation Management',
+                sender='noreply@demo.com',
+                recipients=emails)
+    if email is not None:
+        msg.body = f'''There has been a change: {user.email}
+{change}
+
+If you would like to turn off the notifications then turn it off in your account settings.
+'''
+    else:
+        msg.body = f'''There has been a change:
+{change}
+
+If you would like to turn off the notifications then turn it off in your account settings.
+'''
+    mail.send(msg)
