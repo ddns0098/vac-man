@@ -159,13 +159,13 @@ def handle_cat():
         category = LeaveCategory.query.filter_by(id=delete).first()
         db.session.delete(category)
         db.session.commit()
-        change = category.category + " has been deleted."
+        change = category.category + " leave category has been deleted."
         send_email(change)
     else:
         category = LeaveCategory(category = add, max_days = max_days)
         db.session.add(category)
         db.session.commit()
-        change = category.category + " has been added."
+        change = category.category + " leave category has been added."
         send_email(change)
     return redirect(url_for('admin'))
 
