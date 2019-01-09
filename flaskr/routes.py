@@ -1,6 +1,7 @@
 from flask import redirect, url_for, session, request, jsonify, render_template, flash
 from flaskr import app, db, mail
 from flaskr.models import User, LeaveRequest, LeaveCategory
+from .decorators import asynchronous
 from flask_oauthlib.client import OAuth
 from flask_mail import Message
 import re, datetime, calendar
@@ -216,6 +217,11 @@ def get_current_user():
 def get_days_left(user):
     return user.leave_category.max_days - user.days
 
+@asynchronous
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
 def send_email(change, email=None):
     admins = User.query.filter_by(user_group='administrator').all()
     emails = []
@@ -228,16 +234,9 @@ def send_email(change, email=None):
     msg = Message('Vacation Management',
                 sender='noreply@demo.com',
                 recipients=emails)
-    if email is not None:
-        msg.body = f'''There has been a change: {user.email}
+    msg.body = f'''There has been a change:
 {change}
 
 If you would like to turn off the notifications then turn it off in your account settings.
 '''
-    else:
-        msg.body = f'''There has been a change:
-{change}
-
-If you would like to turn off the notifications then turn it off in your account settings.
-'''
-    mail.send(msg)
+    send_async_email(app, msg)
