@@ -13,47 +13,49 @@
                {% endfor %}
          {% endif %}
 {% endwith %}
-{% if current_user.user_group != 'unapproved' %}
-<div id="calendar"></div>
-{% endif %}
-{% if current_user.user_group == 'viewer' %}
-<h4>Viewers can't create leave requests!</h4>
-{% elif current_user.leave_category is none %}
-<h4>You can't create leave requests until an administrator sets your leave category!</h4>
+{% if current_user.user_group == 'unapproved' %}
+<h4>Your account is not approved yet!</h4>
 {% else %}
-<div style="display: none;" class="modal modal-fade" id="event-modal">
-  <div class="modal-dialog">
-      <div class="modal-content">
-          <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
-              <h4 class="modal-title">
-                  Leave Request
-              </h4>
-          </div>
-          <div class="modal-body">
-              <form action="/save_request" id="leave_form" class="form-horizontal" method="POST">
-                <input type="hidden" name="current_user" value="{{ current_user.email }}">
-                  <div class="form-group">
-                      <label for="min-date" class="col-sm-4 control-label">Dates</label>
-                      <div class="col-sm-7">
-                          <div class="input-group input-daterange" data-provide="datepicker">
-                              <input name="start-date" id="start" class="form-control" value="2012-04-05" type="text">
-                              <span class="input-group-addon">to</span>
-                              <input name="end-date" id="end" class="form-control" value="2012-04-19" type="text">
-                          </div>
-                      </div>
-                  </div>
-              </form>
-          </div>
-          <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-              <button type="submit" id="submit-btn" form="leave_form" class="btn btn-primary">Save</button>
-          </div>
-      </div>
+<div id="calendar"></div>
+  {% if current_user.user_group == 'viewer' %}
+  <h4>Viewers can't create leave requests!</h4>
+  {% elif current_user.leave_category is none %}
+  <h4>You can't create leave requests until an administrator sets your leave category!</h4>
+  {% else %}
+  <div style="display: none;" class="modal modal-fade" id="event-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">
+                    Leave Request
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form action="/save_request" id="leave_form" class="form-horizontal" method="POST">
+                  <input type="hidden" name="current_user" value="{{ current_user.email }}">
+                    <div class="form-group">
+                        <label for="min-date" class="col-sm-4 control-label">Dates</label>
+                        <div class="col-sm-7">
+                            <div class="input-group input-daterange" data-provide="datepicker">
+                                <input name="start-date" id="start" class="form-control" value="2012-04-05" type="text">
+                                <span class="input-group-addon">to</span>
+                                <input name="end-date" id="end" class="form-control" value="2012-04-19" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" id="submit-btn" form="leave_form" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
   </div>
-</div>
-<div id="context-menu">
-</div>
+  <div id="context-menu">
+  </div>
+  {% endif %}
 {% endif %}
 {% endblock content %}
 {% block script %}

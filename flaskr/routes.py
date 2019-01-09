@@ -125,6 +125,19 @@ def handle_acc():
         group = request.form.get('group')
         category = request.form.get('category')
         user_email = request.form.get('user')
+        on = request.form.get('on')
+        off = request.form.get('off')
+        if on or off is not None:
+            if on is not None:
+                user = User.query.filter_by(email=on).first()
+                user.notification = False
+                db.session.commit()
+            else:
+                user = User.query.filter_by(email=off).first()
+                user.notification = True
+                db.session.commit()
+            return redirect(url_for('account'))
+
         if delete_email is not None:
             user = User.query.filter_by(email=delete_email).first()
             db.session.delete(user)
@@ -135,20 +148,20 @@ def handle_acc():
             user = User.query.filter_by(email=approve_email).first()
             user.user_group = 'viewer'
             db.session.commit()
-            change = user_email + " has been approved."
-            send_email(change, user_email)
+            change = user.email + " has been approved."
+            send_email(change, user.email)
         elif category is not None:
             user = User.query.filter_by(email=user_email).first()
             user.leave_category_id = category
             db.session.commit()
-            change = user_email + "'s category has been changed."
-            send_email(change, user_email)
+            change = user.email + "'s category has been changed."
+            send_email(change, user.email)
         else:
             user = User.query.filter_by(email=user_email).first()
             user.user_group = group
             db.session.commit()
-            change = user_email + "'s user group has been changed."
-            send_email(change, user_email)
+            change = user.email + "'s user group has been changed."
+            send_email(change, user.email)
     return redirect(url_for('admin'))
 
 @app.route('/handle_cat', methods=["POST"])
@@ -223,13 +236,13 @@ def send_async_email(app, msg):
         mail.send(msg)
 
 def send_email(change, email=None):
-    admins = User.query.filter_by(user_group='administrator').all()
+    admins = User.query.filter_by(user_group='administrator', notification=True).all()
     emails = []
     for admin in admins:
         emails.append(admin.email)
     if email is not None:
         user = User.query.filter_by(email=email).first()
-        if user.user_group != 'administrator':
+        if user.user_group != 'administrator' and user.notification:
             emails.append(user.email)
     msg = Message('Vacation Management',
                 sender='noreply@demo.com',

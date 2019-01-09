@@ -6,11 +6,12 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     user_group = db.Column(db.String(20), default='unapproved', nullable=False)
     days = db.Column(db.Integer, default=0, nullable=False)
+    notification = db.Column(db.Boolean, default=True, nullable=False)
     leave_requests = db.relationship('LeaveRequest', backref='user', lazy=True)
     leave_category_id = db.Column(db.Integer, db.ForeignKey('leave_category.id'), nullable=True)
 
     def __repr__(self):
-        return f"User('{self.email}', '{self.user_group}', '{self.days}')"
+        return f"User('{self.email}', '{self.user_group}', '{self.days}', '{self.notification}')"
 
 class LeaveRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)

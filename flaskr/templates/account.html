@@ -14,6 +14,7 @@
     <th scope="col">User Group</th>
     <th scope="col">Leave Category</th>
     <th scope="col">Days Left</th>
+    <th scope="col">Notifications</th>
   </tr>
 </thead>
 <tbody>
@@ -22,6 +23,13 @@
     <td>{{ current_user.user_group }}</td>
     <td>{{ current_user.leave_category.category }}</td>
     <td>{{ days_left }}</td>
+    <td>
+      {% if current_user.notification %}
+        <form action="/handle_acc" method="POST"><button class="btn btn-success" type="submit" name="on" value="{{ current_user.email }}">On</button></form>
+      {% else %}
+        <form action="/handle_acc" method="POST"><button class="btn btn-danger" type="submit" name="off" value="{{ current_user.email }}">Off</button></form>
+      {% endif %}
+    </td>
   </tr>
 </tbody>
 </table>
