@@ -224,8 +224,10 @@ def dateformat(date):
 def get_current_user():
     raw_data = json.dumps(google.get('userinfo').data)
     data = json.loads(raw_data)
-    email = data['email']
-    return User.query.filter_by(email=email).first()
+    if 'email' in data:
+        return User.query.filter_by(email=data['email']).first()
+    else:
+        return redirect(url_for('logout'))
 
 def get_days_left(user):
     return user.leave_category.max_days - user.days

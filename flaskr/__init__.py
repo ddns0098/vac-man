@@ -12,6 +12,7 @@ app.config.from_mapping(
     SQLALCHEMY_DATABASE_URI='sqlite:///site.db',
 )
 db = SQLAlchemy(app)
+db.create_all()
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
