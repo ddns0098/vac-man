@@ -1,14 +1,17 @@
-from flask import redirect, url_for, session, request, jsonify, render_template, flash
-from flaskr import app, db, mail
-from flaskr.models import User, LeaveRequest, LeaveCategory
-from .decorators import asynchronous
+from flask import redirect, url_for, session, request, jsonify, render_template, flash, current_app, Blueprint
 from flask_oauthlib.client import OAuth
 from flask_mail import Message
 import re, datetime, calendar
 import json
 
-REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
+from flaskr.models import db, User, LeaveRequest, LeaveCategory
+from .decorators import asynchronous
 
+app = current_app
+
+routes_blueprint = Blueprint('routes_blueprint', __name__)
+
+REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
 oauth = OAuth()
 
 google = oauth.remote_app('google',
@@ -21,14 +24,14 @@ access_token_method='POST',
 consumer_key=app.config.get('GOOGLE_ID'),
 consumer_secret=app.config.get('GOOGLE_SECRET'))
 
-@app.route('/')
+@routes_blueprint.route('/')
 def index():
     if 'google_token' in session:
         current_user = get_current_user()
         return render_template('index.html', current_user=current_user)
-    return redirect(url_for('login'))
+    return redirect(url_for('routes_blueprint.login'))
 
-@app.route('/admin')
+@routes_blueprint.route('/admin')
 def admin():
     current_user = get_current_user()
     if current_user.user_group == 'administrator':
@@ -36,40 +39,43 @@ def admin():
         leave_categories = LeaveCategory.query.all()
         page = request.args.get('page', 1 , type=int)
         leave_requests = LeaveRequest.query.filter_by(state='pending').paginate(page, app.config.get('REQUESTS_PER_PAGE_ADMIN'), False)
-        next_url = url_for('admin', page=leave_requests.next_num) \
+        next_url = url_for('routes_blueprint.admin', page=leave_requests.next_num) \
         if leave_requests.has_next else None
-        prev_url = url_for('admin', page=leave_requests.prev_num) \
+        prev_url = url_for('routes_blueprint.admin', page=leave_requests.prev_num) \
         if leave_requests.has_prev else None
         return render_template('admin.html', users=users, leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url, leave_categories=leave_categories, user_groups=app.config.get('USER_GROUPS'))
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
 
-@app.route('/requests')
+@routes_blueprint.route('/requests')
 def requests():
     current_user = get_current_user()
     if current_user.user_group == 'administrator':
         page = request.args.get('page', 1 , type=int)
         leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.asc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
-        next_url = url_for('requests', page=leave_requests.next_num) \
+        next_url = url_for('routes_blueprint.requests', page=leave_requests.next_num) \
         if leave_requests.has_next else None
-        prev_url = url_for('requests', page=leave_requests.prev_num) \
+        prev_url = url_for('routes_blueprint.requests', page=leave_requests.prev_num) \
         if leave_requests.has_prev else None
         return render_template('requests.html', leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url)
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
 
-@app.route('/account')
+@routes_blueprint.route('/account')
 def account():
     current_user = get_current_user()
-    if current_user.leave_category is None:
-        days_left = "You don't have a leave category yet."
+    if hasattr(current_user, 'leave_category'):
+        if current_user.leave_category is None:
+            days_left = "You don't have a leave category yet."
+        else:
+            days_left = get_days_left(current_user)
+        return render_template('account.html', current_user=current_user, days_left=days_left)
     else:
-        days_left = get_days_left(current_user)
-    return render_template('account.html', current_user=current_user, days_left=days_left)
+        return redirect(url_for('routes_blueprint.login'))
 
-@app.route('/save_request', methods=["GET","POST"])
+@routes_blueprint.route('/save_request', methods=["GET","POST"])
 def save_request():
     current_user = User.query.filter_by(email=request.form.get('current_user')).first()
     if current_user.user_group == 'viewer' or current_user.user_group == 'unapproved':
-        return redirect(url_for('index'))
+        return redirect(url_for('routes_blueprint.index'))
     start_date_split = request.form.get('start-date').split("/")
     end_date_split = request.form.get('end-date').split("/")
     start_date = datetime.datetime.strptime(start_date_split[2] + '-' + start_date_split[0] + '-' + start_date_split[1], '%Y-%m-%d')
@@ -87,11 +93,11 @@ def save_request():
         db.session.commit()
         change = current_user.email + " created a leave request."
         send_email(change)
-        return redirect(url_for('index'))
+        return redirect(url_for('routes_blueprint.index'))
     flash("You only have " + str(get_days_left(current_user)) + " days left!")
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
 
-@app.route('/handle_request', methods=["POST"])
+@routes_blueprint.route('/handle_request', methods=["POST"])
 def handle_request():
     if request.method == 'POST':
         accept_request = request.form.get('accept')
@@ -114,10 +120,10 @@ def handle_request():
             change = leave_request.user.email + "'s leave request has been declined."
             send_email(change, leave_request.user.email)
         if request.form.get('site'):
-            return redirect(url_for('requests'))
-    return redirect(url_for('admin'))
+            return redirect(url_for('routes_blueprint.requests'))
+    return redirect(url_for('routes_blueprint.admin'))
 
-@app.route('/handle_acc', methods=["GET","POST"])
+@routes_blueprint.route('/handle_acc', methods=["GET","POST"])
 def handle_acc():
     if request.method == 'POST':
         delete_email = request.form.get('delete')
@@ -136,7 +142,7 @@ def handle_acc():
                 user = User.query.filter_by(email=off).first()
                 user.notification = True
                 db.session.commit()
-            return redirect(url_for('account'))
+            return redirect(url_for('routes_blueprint.account'))
 
         if delete_email is not None:
             user = User.query.filter_by(email=delete_email).first()
@@ -162,9 +168,9 @@ def handle_acc():
             db.session.commit()
             change = user.email + "'s user group has been changed."
             send_email(change, user.email)
-    return redirect(url_for('admin'))
+    return redirect(url_for('routes_blueprint.admin'))
 
-@app.route('/handle_cat', methods=["POST"])
+@routes_blueprint.route('/handle_cat', methods=["POST"])
 def handle_cat():
     delete = request.form.get('delete')
     add = request.form.get('add')
@@ -181,18 +187,18 @@ def handle_cat():
         db.session.commit()
         change = category.category + " leave category has been added."
         send_email(change)
-    return redirect(url_for('admin'))
+    return redirect(url_for('routes_blueprint.admin'))
 
-@app.route('/login')
+@routes_blueprint.route('/login')
 def login():
-    return google.authorize(callback=url_for('authorized', _external=True))
+    return google.authorize(callback=url_for('routes_blueprint.authorized', _external=True))
 
-@app.route('/logout')
+@routes_blueprint.route('/logout')
 def logout():
     session.pop('google_token', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
 
-@app.route('/login/authorized')
+@routes_blueprint.route('/login/authorized')
 def authorized():
     resp = google.authorized_response()
     if resp is None:
@@ -211,7 +217,7 @@ def authorized():
         db.session.commit()
         change = user.email + " logged in for the first time."
         send_email(change)
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
 
 @google.tokengetter
 def get_google_oauth_token():
@@ -227,7 +233,7 @@ def get_current_user():
     if 'email' in data:
         return User.query.filter_by(email=data['email']).first()
     else:
-        return redirect(url_for('logout'))
+        return redirect(url_for('routes_blueprint.logout'))
 
 def get_days_left(user):
     return user.leave_category.max_days - user.days

@@ -1,5 +1,8 @@
-from flaskr import db
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+
+db = SQLAlchemy()
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13,6 +16,7 @@ class User(db.Model):
     def __repr__(self):
         return f"User('{self.email}', '{self.user_group}', '{self.days}', '{self.notification}')"
 
+
 class LeaveRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_date = db.Column(db.DateTime, nullable=False)
@@ -22,6 +26,7 @@ class LeaveRequest(db.Model):
 
     def __repr__(self):
         return f"LeaveRequest('{self.start_date}', '{self.end_date}', '{self.state}')"
+
 
 class LeaveCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
