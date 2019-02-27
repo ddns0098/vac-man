@@ -13,10 +13,10 @@ main() {
   pytest tests/pytest --exitfirst
 
   log "INFO: Running pylint ..."
-  #pylint --rcfile tests/.pylintrc flaskr
+  pylint --rcfile tests/.pylintrc flaskr
 
   log "INFO: Running pycodestyle ..."
-  #pycodestyle --max-line-length=150 --ignore=E402 flaskr
+  pycodestyle --max-line-length=150 --ignore=E402 flaskr
 }
 
 log() {

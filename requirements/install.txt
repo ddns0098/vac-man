@@ -2,5 +2,7 @@ flask
 flask-sqlalchemy
 flask-mail
 flask-oauthlib
+pycodestyle
+pylint
 pytest
 setuptools

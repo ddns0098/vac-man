@@ -1,10 +1,13 @@
+"""Flaskr module"""
 import os
 
 from flask import Flask
 from flask_mail import Mail
 
+
 # create and configure the app
 def create_app():
+    """Creates and configures app."""
     app = Flask(__name__, instance_relative_config=True)
 
     # ensure the instance folder exists
@@ -24,6 +27,7 @@ def create_app():
         from flaskr.models import db
         db.init_app(app)
         db.create_all()
+        # pylint: disable=unused-variable
         mail = Mail(app)
 
         from flaskr.routes import routes_blueprint
