@@ -1,0 +1,5 @@
+  web:
+      container_name: vac-man
+      build: .
+      ports:
+          - "5000:5000"
