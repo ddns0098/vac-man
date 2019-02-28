@@ -1,5 +1,6 @@
 """Flaskr module"""
 import os
+import os.path
 
 from flask import Flask
 from flask_mail import Mail
@@ -10,13 +11,11 @@ def create_app():
     """Creates and configures app."""
     app = Flask(__name__, instance_relative_config=True)
 
-    # ensure the instance folder exists
     try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+        app.config.from_pyfile('config.py')
+    except IOError:
+        print('Error: No config file. Use environment variables...')
 
-    app.config.from_pyfile('config.py')
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
