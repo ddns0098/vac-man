@@ -22,7 +22,7 @@ def create_app():
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
     app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
-
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     with app.app_context():
         from flaskr.models import db
         db.init_app(app)

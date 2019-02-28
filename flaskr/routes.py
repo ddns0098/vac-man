@@ -46,9 +46,9 @@ def admin():
         page = request.args.get('page', 1, type=int)
         leave_requests = LeaveRequest.query.filter_by(state='pending').paginate(page, app.config.get('REQUESTS_PER_PAGE_ADMIN'), False)
         next_url = url_for('routes_blueprint.admin', page=leave_requests.next_num) \
-        if leave_requests.has_next else None
+            if leave_requests.has_next else None
         prev_url = url_for('routes_blueprint.admin', page=leave_requests.prev_num) \
-        if leave_requests.has_prev else None
+            if leave_requests.has_prev else None
         return render_template('admin.html', users=users, leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url,
                                leave_categories=leave_categories, user_groups=app.config.get('USER_GROUPS'))
     return redirect(url_for('routes_blueprint.index'))
@@ -62,9 +62,9 @@ def requests():
         page = request.args.get('page', 1, type=int)
         leave_requests = LeaveRequest.query.order_by(LeaveRequest.start_date.asc()).paginate(page, app.config.get('REQUESTS_PER_PAGE'), False)
         next_url = url_for('routes_blueprint.requests', page=leave_requests.next_num) \
-        if leave_requests.has_next else None
+            if leave_requests.has_next else None
         prev_url = url_for('routes_blueprint.requests', page=leave_requests.prev_num) \
-        if leave_requests.has_prev else None
+            if leave_requests.has_prev else None
         return render_template('requests.html', leave_requests=leave_requests.items, next_url=next_url, prev_url=prev_url)
     return redirect(url_for('routes_blueprint.index'))
 
