@@ -1,6 +1,5 @@
 import os
 def test_development_config(app):
-    app.config.from_object('instance.config')
     assert not app.config['TESTING']
     assert app.config['GOOGLE_ID']
     assert app.config['GOOGLE_SECRET']
