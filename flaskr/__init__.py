@@ -15,6 +15,12 @@ def create_app():
         app.config.from_pyfile('config.py')
     except IOError:
         print('Error: No config file. Use environment variables...')
+        app.config.update(
+            SECRET_KEY=os.getenv('SECRET_KEY'),
+            GOOGLE_ID=os.getenv('GOOGLE_ID'),
+            GOOGLE_SECRET=os.getenv('GOOGLE_SECRET'),
+            USER_GROUPS=['viewer', 'employee', 'administrator'],
+            SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI'))
 
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
