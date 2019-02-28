@@ -20,7 +20,7 @@ def create_app():
             GOOGLE_ID=os.getenv('GOOGLE_ID'),
             GOOGLE_SECRET=os.getenv('GOOGLE_SECRET'),
             USER_GROUPS=['viewer', 'employee', 'administrator'],
-            SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI'))
+            SQLALCHEMY_DATABASE_URI='sqlite:///site.db')
 
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
