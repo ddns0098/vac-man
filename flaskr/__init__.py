@@ -19,6 +19,8 @@ def create_app():
             SECRET_KEY=os.getenv('SECRET_KEY'),
             GOOGLE_ID=os.getenv('GOOGLE_ID'),
             GOOGLE_SECRET=os.getenv('GOOGLE_SECRET'),
+            REQUESTS_PER_PAGE_ADMIN=os.getenv('REQUESTS_PER_PAGE_ADMIN'),
+            REQUESTS_PER_PAGE=os.getenv('REQUESTS_PER_PAGE'),
             USER_GROUPS=['viewer', 'employee', 'administrator'],
             SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI'))
 
