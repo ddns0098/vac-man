@@ -10,8 +10,6 @@ main() {
   docker run -it -e SECRET_KEY=$SECRET_KEY \
   -e GOOGLE_ID=$GOOGLE_ID \
   -e GOOGLE_SECRET=$GOOGLE_SECRET \
-  -e REQUESTS_PER_PAGE_ADMIN=$REQUESTS_PER_PAGE_ADMIN \
-  -e REQUESTS_PER_PAGE=$REQUESTS_PER_PAGE \
   -e SQLALCHEMY_DATABASE_URI=$SQLALCHEMY_DATABASE_URI \
   vac-man:testing \
   /src/vac_man/tests/bin/tests.sh "$@"
